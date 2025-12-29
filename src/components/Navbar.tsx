@@ -1,11 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Shield, Phone } from "lucide-react";
+import { Menu, X, Shield, Phone, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [employerOpen, setEmployerOpen] = useState(false);
+  const [candidateOpen, setCandidateOpen] = useState(false);
   const location = useLocation();
 
   const navLinks = [
@@ -13,6 +21,19 @@ const Navbar = () => {
     { name: "Services", href: "/services" },
     { name: "How It Works", href: "/how-it-works" },
     { name: "About Us", href: "/about" },
+  ];
+
+  const employerLinks = [
+    { name: "Fees and Terms", href: "/employers/fees-terms" },
+    { name: "Family Application", href: "/employers/family-application" },
+    { name: "Browse Candidates", href: "/employers/browse-candidates" },
+  ];
+
+  const candidateLinks = [
+    { name: "Application Form", href: "/candidates/application" },
+    { name: "Available Jobs", href: "/candidates/jobs" },
+    { name: "Know Your Rights", href: "/candidates/rights" },
+    { name: "Resume Builder", href: "/candidates/resume-builder" },
   ];
 
   const isActive = (href: string) => location.pathname === href;
@@ -33,7 +54,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
@@ -45,6 +66,40 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+
+            {/* For Employers Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary outline-none">
+                For Employers
+                <ChevronDown className="w-4 h-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="bg-card border-border">
+                {employerLinks.map((link) => (
+                  <DropdownMenuItem key={link.name} asChild>
+                    <Link to={link.href} className="cursor-pointer">
+                      {link.name}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* For Candidates Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary outline-none">
+                For Candidates
+                <ChevronDown className="w-4 h-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="bg-card border-border">
+                {candidateLinks.map((link) => (
+                  <DropdownMenuItem key={link.name} asChild>
+                    <Link to={link.href} className="cursor-pointer">
+                      {link.name}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Desktop CTA */}
@@ -93,6 +148,71 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
+
+              {/* Mobile For Employers */}
+              <div className="pt-2">
+                <button
+                  onClick={() => setEmployerOpen(!employerOpen)}
+                  className="flex items-center justify-between w-full py-2 text-base font-medium text-muted-foreground"
+                >
+                  For Employers
+                  <ChevronDown className={`w-4 h-4 transition-transform ${employerOpen ? "rotate-180" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {employerOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="pl-4 space-y-1"
+                    >
+                      {employerLinks.map((link) => (
+                        <Link
+                          key={link.name}
+                          to={link.href}
+                          onClick={() => setIsOpen(false)}
+                          className="block py-2 text-sm text-muted-foreground hover:text-primary"
+                        >
+                          {link.name}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Mobile For Candidates */}
+              <div>
+                <button
+                  onClick={() => setCandidateOpen(!candidateOpen)}
+                  className="flex items-center justify-between w-full py-2 text-base font-medium text-muted-foreground"
+                >
+                  For Candidates
+                  <ChevronDown className={`w-4 h-4 transition-transform ${candidateOpen ? "rotate-180" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {candidateOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="pl-4 space-y-1"
+                    >
+                      {candidateLinks.map((link) => (
+                        <Link
+                          key={link.name}
+                          to={link.href}
+                          onClick={() => setIsOpen(false)}
+                          className="block py-2 text-sm text-muted-foreground hover:text-primary"
+                        >
+                          {link.name}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <div className="pt-3 flex flex-col gap-2">
                 <Button variant="outline" size="lg" asChild className="w-full">
                   <a href="tel:+2349000000000" className="flex items-center justify-center gap-2">
