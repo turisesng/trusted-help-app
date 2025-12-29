@@ -11,6 +11,17 @@ import HowItWorks from "./pages/HowItWorks";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
+// Employer pages
+import FeesAndTerms from "./pages/employers/FeesAndTerms";
+import FamilyApplication from "./pages/employers/FamilyApplication";
+import BrowseCandidates from "./pages/employers/BrowseCandidates";
+
+// Candidate pages
+import CandidateApplication from "./pages/candidates/ApplicationForm";
+import AvailableJobs from "./pages/candidates/AvailableJobs";
+import KnowYourRights from "./pages/candidates/KnowYourRights";
+import ResumeBuilder from "./pages/candidates/ResumeBuilder";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -26,6 +37,18 @@ const App = () => (
             <Route path="/services" element={<Services />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/about" element={<About />} />
+            
+            {/* Employer Routes */}
+            <Route path="/employers/fees" element={<FeesAndTerms />} />
+            <Route path="/employers/application" element={<FamilyApplication />} />
+            <Route path="/employers/browse" element={<BrowseCandidates />} />
+            
+            {/* Candidate Routes */}
+            <Route path="/candidates/apply" element={<CandidateApplication />} />
+            <Route path="/candidates/jobs" element={<AvailableJobs />} />
+            <Route path="/candidates/rights" element={<KnowYourRights />} />
+            <Route path="/candidates/resume" element={<ResumeBuilder />} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
