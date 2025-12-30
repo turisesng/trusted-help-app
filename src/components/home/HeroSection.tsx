@@ -73,7 +73,7 @@ const HeroSection = () => {
             </div>
           </motion.div>
 
-          {/* Hero Image/Illustration */}
+          {/* Hero Image Section */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -83,25 +83,28 @@ const HeroSection = () => {
             <div className="relative">
               {/* Main Image Container */}
               <div className="relative w-full aspect-square max-w-lg mx-auto">
+                {/* Background Decorative Boxes */}
                 <div className="absolute inset-0 rounded-3xl bg-primary-foreground/10 backdrop-blur-sm transform rotate-3" />
                 <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-accent/20 to-primary-foreground/5 transform -rotate-3" />
-                <div className="relative rounded-3xl overflow-hidden bg-primary-foreground/10 h-full flex items-center justify-center">
-                  {/* Placeholder for actual image - showing trust iconography */}
-                  <div className="text-center p-8">
-                    <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-accent/20 flex items-center justify-center">
-                      <Shield className="w-12 h-12 text-accent-light" />
-                    </div>
-                    <p className="text-primary-foreground/60 text-sm">Happy Families Served</p>
-                    <p className="text-4xl font-bold text-primary-foreground mt-2">2,500+</p>
-                  </div>
+                
+                {/* THE IMAGE COMPONENT */}
+                <div className="relative rounded-3xl overflow-hidden bg-primary-foreground/10 h-full border border-white/10 shadow-2xl">
+                  <img 
+                    src="/staff-hero.png" // Ensure your image is in public/staff-hero.png
+                    alt="Trusted Domestic Staff - Cook, Driver, Steward, and Maid"
+                    className="w-full h-full object-cover object-center"
+                    loading="eager"
+                  />
+                  {/* Subtle Overlay to ensure floating cards remain readable */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                 </div>
               </div>
 
-              {/* Floating Cards */}
+              {/* Floating Cards (Remain the same) */}
               <motion.div
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-4 -right-4 bg-card rounded-xl shadow-elevated p-4 max-w-[180px]"
+                className="absolute -top-4 -right-4 bg-card rounded-xl shadow-elevated p-4 max-w-[180px] z-10"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
@@ -117,7 +120,7 @@ const HeroSection = () => {
               <motion.div
                 animate={{ y: [0, 10, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                className="absolute -bottom-4 -left-4 bg-card rounded-xl shadow-elevated p-4 max-w-[200px]"
+                className="absolute -bottom-4 -left-4 bg-card rounded-xl shadow-elevated p-4 max-w-[200px] z-10"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">

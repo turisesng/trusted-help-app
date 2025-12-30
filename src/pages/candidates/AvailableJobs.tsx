@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import Layout from "@/components/Layout";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Select, 
@@ -13,6 +13,26 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Clock, Banknote, Home, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/lib/supabaseClient";
+
+interface Job {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  homeType: string;
+  householdSize: string;
+  staffTypes: string[];
+  arrangement: string;
+  startDate: string;
+  accommodation: string;
+  additionalNotes: string;
+  agreeTerms: boolean;
+  created_at: string;
+}
 
 const AvailableJobs = () => {
   const [filters, setFilters] = useState({
@@ -20,81 +40,33 @@ const AvailableJobs = () => {
     location: "",
     arrangement: "",
   });
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const jobs = [
-    {
-      id: 1,
-      title: "Live-in Maid",
-      location: "Victoria Island, Lagos",
-      salary: "₦40,000 - ₦50,000/month",
-      arrangement: "Live-in",
-      postedDate: "2 days ago",
-      requirements: ["Cleaning", "Laundry", "Basic cooking"],
-      description: "Family of 4 seeking experienced maid. Private quarters provided.",
-      urgent: true,
-    },
-    {
-      id: 2,
-      title: "Cook",
-      location: "Maitama, Abuja",
-      salary: "₦60,000 - ₦80,000/month",
-      arrangement: "Live-out",
-      postedDate: "5 days ago",
-      requirements: ["Nigerian cuisine", "Continental dishes", "Meal planning"],
-      description: "Looking for experienced cook for busy household. Must be able to prepare various cuisines.",
-      urgent: false,
-    },
-    {
-      id: 3,
-      title: "Nanny",
-      location: "Lekki, Lagos",
-      salary: "₦50,000 - ₦70,000/month",
-      arrangement: "Live-in",
-      postedDate: "1 day ago",
-      requirements: ["Childcare experience", "First aid", "Educational activities"],
-      description: "Caring nanny needed for 2 children (ages 3 and 5). Must be patient and nurturing.",
-      urgent: true,
-    },
-    {
-      id: 4,
-      title: "Driver",
-      location: "Ikoyi, Lagos",
-      salary: "₦70,000 - ₦90,000/month",
-      arrangement: "Live-out",
-      postedDate: "3 days ago",
-      requirements: ["Valid license", "5+ years experience", "Clean driving record"],
-      description: "Personal driver for executive. Must know Lagos routes well.",
-      urgent: false,
-    },
-    {
-      id: 5,
-      title: "Elderly Caregiver",
-      location: "Wuse, Abuja",
-      salary: "₦55,000 - ₦75,000/month",
-      arrangement: "Live-in",
-      postedDate: "1 week ago",
-      requirements: ["Elderly care experience", "Medication management", "Patient disposition"],
-      description: "Compassionate caregiver needed for elderly woman. Medical background preferred.",
-      urgent: false,
-    },
-    {
-      id: 6,
-      title: "Steward",
-      location: "GRA, Port Harcourt",
-      salary: "₦35,000 - ₦45,000/month",
-      arrangement: "Live-out",
-      postedDate: "4 days ago",
-      requirements: ["Housekeeping", "Serving", "Organizing"],
-      description: "Steward needed for bachelor's apartment. Light cleaning and organization.",
-      urgent: false,
-    },
-  ];
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase.from('employer_applications').select('*');
+        if (error) {
+          throw error;
+        }
+        setJobs(data as Job[]);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJobs();
+  }, []);
 
   const filteredJobs = jobs.filter((job) => {
-    if (filters.role && !job.title.toLowerCase().includes(filters.role.toLowerCase())) {
+    if (filters.role && !job.staffTypes.map(type => type.toLowerCase()).includes(filters.role.toLowerCase())) {
       return false;
     }
-    if (filters.location && !job.location.includes(filters.location)) {
+    if (filters.location && job.state !== filters.location) {
       return false;
     }
     if (filters.arrangement && job.arrangement !== filters.arrangement) {
@@ -179,12 +151,25 @@ const AvailableJobs = () => {
         <div className="container mx-auto px-4">
           <div className="mb-6">
             <p className="text-muted-foreground">
-              Showing {filteredJobs.length} of {jobs.length} positions
+              {loading && "Loading jobs..."}
+              {error && `Error: ${error}`}
+              {!loading && !error && `Showing ${filteredJobs.length} of ${jobs.length} positions`}
             </p>
           </div>
 
           <div className="space-y-4 max-w-4xl">
-            {filteredJobs.map((job, index) => (
+            {!loading && !error && filteredJobs.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No jobs match your filters.</p>
+                <Button
+                  variant="link"
+                  onClick={() => setFilters({ role: "", location: "", arrangement: "" })}
+                >
+                  Clear all filters
+                </Button>
+              </div>
+            )}
+            {!loading && !error && filteredJobs.map((job, index) => (
               <motion.div
                 key={job.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -195,35 +180,33 @@ const AvailableJobs = () => {
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold text-foreground">{job.title}</h3>
-                      {job.urgent && (
-                        <Badge variant="destructive">Urgent</Badge>
-                      )}
-                      <Badge variant="outline">{job.arrangement}</Badge>
+                      {job.staffTypes.map((type) => (
+                        <h3 key={type} className="text-xl font-semibold text-foreground">{type}</h3>
+                      ))}
+                      {/* We don't have an 'urgent' field in employer_applications directly, so this is removed for now */}
+                      {job.arrangement && <Badge variant="outline">{job.arrangement}</Badge>}
                     </div>
-                    <p className="text-muted-foreground mb-4">{job.description}</p>
+                    <p className="text-muted-foreground mb-4">Seeking staff for a {job.homeType} in {job.city}, {job.state} for {job.householdSize} people. {job.additionalNotes}</p>
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
                       <span className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
-                        {job.location}
+                        {job.address}, {job.city}, {job.state}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Banknote className="w-4 h-4" />
-                        {job.salary}
-                      </span>
+                      {job.startDate && (
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          Start Date: {new Date(job.startDate).toLocaleDateString()}
+                        </span>
+                      )}
                       <span className="flex items-center gap-1">
                         <Home className="w-4 h-4" />
-                        {job.arrangement}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        Posted {job.postedDate}
+                        {job.homeType} ({job.householdSize} people)
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {job.requirements.map((req) => (
-                        <Badge key={req} variant="secondary" className="text-xs">
-                          {req}
+                      {job.staffTypes.map((type) => (
+                        <Badge key={type} variant="secondary" className="text-xs">
+                          {type}
                         </Badge>
                       ))}
                     </div>

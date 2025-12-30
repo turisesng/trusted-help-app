@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import Layout from "@/components/Layout";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -14,6 +14,21 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Search, MapPin, Star, Shield, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/lib/supabaseClient";
+
+interface Candidate {
+  id: string;
+  firstName: string;
+  lastName: string;
+  roleApplying: string;
+  experience: string;
+  location: string;
+  skills: string[];
+  verified: boolean;
+  rating: number;
+  availability: string;
+  // Add other fields as necessary from your Supabase table
+}
 
 const BrowseCandidates = () => {
   const [filters, setFilters] = useState({
@@ -22,84 +37,36 @@ const BrowseCandidates = () => {
     arrangement: "",
     search: "",
   });
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const candidates = [
-    {
-      id: 1,
-      name: "Blessing A.",
-      role: "Live-in Maid",
-      experience: "5 years",
-      location: "Lagos",
-      skills: ["Cleaning", "Laundry", "Cooking basics"],
-      verified: true,
-      rating: 4.8,
-      available: true,
-    },
-    {
-      id: 2,
-      name: "Emmanuel O.",
-      role: "Cook",
-      experience: "8 years",
-      location: "Abuja",
-      skills: ["Nigerian cuisine", "Continental", "Baking"],
-      verified: true,
-      rating: 4.9,
-      available: true,
-    },
-    {
-      id: 3,
-      name: "Grace N.",
-      role: "Nanny",
-      experience: "6 years",
-      location: "Lagos",
-      skills: ["Childcare", "First Aid", "Educational activities"],
-      verified: true,
-      rating: 4.7,
-      available: false,
-    },
-    {
-      id: 4,
-      name: "Joseph M.",
-      role: "Driver",
-      experience: "10 years",
-      location: "Port Harcourt",
-      skills: ["Defensive driving", "Vehicle maintenance", "City navigation"],
-      verified: true,
-      rating: 4.9,
-      available: true,
-    },
-    {
-      id: 5,
-      name: "Fatima U.",
-      role: "Elderly Caregiver",
-      experience: "7 years",
-      location: "Abuja",
-      skills: ["Medication management", "Personal care", "Companionship"],
-      verified: true,
-      rating: 5.0,
-      available: true,
-    },
-    {
-      id: 6,
-      name: "Samuel K.",
-      role: "Steward",
-      experience: "4 years",
-      location: "Lagos",
-      skills: ["Housekeeping", "Serving", "Event support"],
-      verified: true,
-      rating: 4.6,
-      available: true,
-    },
-  ];
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase.from('candidates').select('*');
+        if (error) {
+          throw error;
+        }
+        setCandidates(data as Candidate[]);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCandidates();
+  }, []);
 
   const filteredCandidates = candidates.filter((candidate) => {
-    if (filters.role && !candidate.role.toLowerCase().includes(filters.role.toLowerCase())) {
+    if (filters.role && !candidate.roleApplying.toLowerCase().includes(filters.role.toLowerCase())) {
       return false;
     }
-    if (filters.location && candidate.location !== filters.location) {
+    if (filters.location && candidate.state !== filters.location) {
       return false;
     }
-    if (filters.search && !candidate.name.toLowerCase().includes(filters.search.toLowerCase())) {
+    if (filters.search && !candidate.firstName.toLowerCase().includes(filters.search.toLowerCase()) && !candidate.lastName.toLowerCase().includes(filters.search.toLowerCase())) {
       return false;
     }
     return true;
@@ -187,7 +154,20 @@ const BrowseCandidates = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCandidates.map((candidate, index) => (
+            {loading && <p className="text-center text-muted-foreground col-span-full">Loading candidates...</p>}
+            {error && <p className="text-center text-destructive col-span-full">Error: {error}</p>}
+            {!loading && !error && filteredCandidates.length === 0 && (
+              <div className="text-center py-12 col-span-full">
+                <p className="text-muted-foreground">No candidates match your filters.</p>
+                <Button
+                  variant="link"
+                  onClick={() => setFilters({ role: "", location: "", arrangement: "", search: "" })}
+                >
+                  Clear all filters
+                </Button>
+              </div>
+            )}
+            {!loading && !error && filteredCandidates.map((candidate, index) => (
               <motion.div
                 key={candidate.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -198,27 +178,27 @@ const BrowseCandidates = () => {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-lg">
-                      {candidate.name.charAt(0)}
+                      {candidate.firstName.charAt(0)}
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground flex items-center gap-2">
-                        {candidate.name}
+                        {candidate.firstName} {candidate.lastName.charAt(0)}.
                         {candidate.verified && (
                           <Shield className="w-4 h-4 text-primary" />
                         )}
                       </h3>
-                      <p className="text-sm text-muted-foreground">{candidate.role}</p>
+                      <p className="text-sm text-muted-foreground">{candidate.roleApplying}</p>
                     </div>
                   </div>
-                  <Badge variant={candidate.available ? "default" : "secondary"}>
-                    {candidate.available ? "Available" : "Assigned"}
+                  <Badge variant={candidate.availability === "immediately" || candidate.availability === "1-week" ? "default" : "secondary"}>
+                    {candidate.availability === "immediately" || candidate.availability === "1-week" ? "Available" : "Assigned"}
                   </Badge>
                 </div>
 
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <MapPin className="w-4 h-4" />
-                    {candidate.location}
+                    {candidate.state}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="w-4 h-4" />
@@ -238,9 +218,9 @@ const BrowseCandidates = () => {
                   ))}
                 </div>
 
-                <Button asChild className="w-full" disabled={!candidate.available}>
+                <Button asChild className="w-full" disabled={!(candidate.availability === "immediately" || candidate.availability === "1-week")}>
                   <Link to="/employers/application">
-                    {candidate.available ? "Request This Candidate" : "Currently Unavailable"}
+                    {(candidate.availability === "immediately" || candidate.availability === "1-week") ? "Request This Candidate" : "Currently Unavailable"}
                   </Link>
                 </Button>
               </motion.div>

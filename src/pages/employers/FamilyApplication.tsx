@@ -16,6 +16,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { User, Home, FileText, CheckCircle } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 
 const FamilyApplication = () => {
   const { toast } = useToast();
@@ -48,13 +49,85 @@ const FamilyApplication = () => {
     "Elderly Caregiver",
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Application Submitted!",
-      description: "We'll contact you within 24-48 hours to discuss your requirements.",
-    });
-    setStep(4);
+
+    // Basic validation
+    const requiredFields = [
+      "fullName", "email", "phone", "address", "city", "state",
+      "staffTypes", "agreeTerms",
+    ];
+    for (const field of requiredFields) {
+      if (Array.isArray(formData[field as keyof typeof formData]) && (formData[field as keyof typeof formData] as string[]).length === 0) {
+        toast({
+          title: "Missing Information",
+          description: `Please select at least one staff type.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!formData[field as keyof typeof formData] && typeof formData[field as keyof typeof formData] !== 'boolean') {
+        toast({
+          title: "Missing Information",
+          description: `Please fill in the required field: ${field}`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (!formData.agreeTerms) {
+      toast({
+        title: "Consent Required",
+        description: "You must agree to the terms and conditions to submit your application.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.from('employer_applications').insert([
+        {
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          homeType: formData.homeType,
+          householdSize: formData.householdSize,
+          staffTypes: formData.staffTypes,
+          arrangement: formData.arrangement,
+          startDate: formData.startDate,
+          accommodation: formData.accommodation,
+          additionalNotes: formData.additionalNotes,
+          agreeTerms: formData.agreeTerms,
+        },
+      ]);
+
+      if (error) {
+        console.error("Supabase insert error:", error);
+        toast({
+          title: "Submission Error",
+          description: "There was an error submitting your application. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Application Submitted!",
+          description: "We'll contact you within 24-48 hours to discuss your requirements.",
+        });
+        setStep(4);
+        console.log("Employer application submitted successfully:", data);
+      }
+    } catch (error) {
+      console.error("Unexpected error during submission:", error);
+      toast({
+        title: "Submission Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const updateFormData = (field: string, value: string | boolean | string[]) => {

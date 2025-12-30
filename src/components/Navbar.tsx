@@ -24,16 +24,16 @@ const Navbar = () => {
   ];
 
   const employerLinks = [
-    { name: "Fees and Terms", href: "/employers/fees-terms" },
-    { name: "Family Application", href: "/employers/family-application" },
-    { name: "Browse Candidates", href: "/employers/browse-candidates" },
+    { name: "Fees and Terms", href: "/employers/fees" },
+    { name: "Family Application", href: "/employers/application" },
+    { name: "Browse Candidates", href: "/employers/browse" },
   ];
 
   const candidateLinks = [
-    { name: "Application Form", href: "/candidates/application" },
+    { name: "Application Form", href: "/candidates/apply" },
     { name: "Available Jobs", href: "/candidates/jobs" },
     { name: "Know Your Rights", href: "/candidates/rights" },
-    { name: "Resume Builder", href: "/candidates/resume-builder" },
+    { name: "Resume Builder", href: "/candidates/resume" },
   ];
 
   const isActive = (href: string) => location.pathname === href;
